@@ -21,6 +21,8 @@ urlpatterns = [
     path('payments/', include('djstripe.urls', namespace='djstripe')),
     path('django-rq/', include('django_rq.urls')),
     path('api/v1/', include('user_auth.urls')),
+    path('api/v1/', include('users.urls')),
     path('api/v1/', include('dashboard.urls')),
-    path('api/v1/', include('plan.urls'))
+    path('api/v1/', include('plan.urls')),
+    path('api/v1/', include('websites.urls'))
 ]

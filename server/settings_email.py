@@ -1,7 +1,7 @@
 # Email settings
 
-DEFAULT_EMAIL_FROM = 'chimezie.daluchi@banzai.io'
-DEFAULT_EMAIL_BCC = 'wealthy.gurub@yahoo.com'
+DEFAULT_EMAIL_FROM = 'sapphire@sapphire.com'
+DEFAULT_EMAIL_BCC = 'bbc@sapphire.com'
 
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587

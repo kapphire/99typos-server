@@ -18,8 +18,9 @@ def debug_task(self):
 
 
 app.conf.beat_schedule = {
-    'check-page-every-5-seconds': {
-        'task': 'page_checker',
-        'schedule': 59.0
+    'task-number-one': {
+        'task': 'sum_two_numbers',
+        'schedule': crontab(minute='*/1'),
+        'args': (16, 16),
     }
 }

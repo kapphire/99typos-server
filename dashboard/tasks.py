@@ -5,7 +5,7 @@ from libs import *
 from celery.decorators import task
 from urllib.parse import urlparse
 
-from dashboard.models import Site, Page, Content, PageLink, ImageLink, Replacement, TyposGrammar
+from websites.models import Site, Page, Content, PageLink, ImageLink, Replacement, TyposGrammar
 
 from scrapyd_api import ScrapydAPI
 
@@ -107,10 +107,10 @@ def get_img_validation_task(**kwargs):
     obj.save()
 
 
-# @task(name="sum_two_numbers")
-# def add(x, y):
-#     print('==========')
-#     return x + y
+@task(name="sum_two_numbers")
+def add(x):
+    print('==========')
+    return x + x
 
 
 # @task(name="multiply_two_numbers")

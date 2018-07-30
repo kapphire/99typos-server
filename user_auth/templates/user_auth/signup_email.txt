@@ -1,2 +1,2 @@
 Verify your email address by clicking on this link:
-    http://18.188.155.177/api/v1/signupverify.html/?code={{ code }}
+    http://127.0.0.1:8000/api/v1/signup/verify?code={{ code }}

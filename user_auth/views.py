@@ -149,6 +149,7 @@ class PasswordResetVerify(APIView):
         except PasswordResetCode.DoesNotExist:
             content = {'detail': _('Unable to verify user.')}
             status = 'false'
+        # return redirect(("http://localhost:4200/password/reset/verify?code={}&status={}").format(code, status))
         return redirect(("http://52.14.232.117/password/reset/verify?code={}&status={}").format(code, status))
             
 

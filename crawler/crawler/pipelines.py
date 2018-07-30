@@ -5,7 +5,7 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from datetime import datetime
-from dashboard.models import Site, Page, Content, ImageLink, PageLink
+from websites.models import Site, Page, Content
 from dashboard.tasks import get_typos_task, insert_links_task, insert_images_task
 from libs import get_hashed, ContentHandler
 
