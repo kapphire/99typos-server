@@ -25,7 +25,7 @@ SECRET_KEY = '*0$_a89b5g=$mb-b-w0yxd4jcr=q!6a26=b!+kv#-z(gg6n^5v'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['18.188.155.177']
 
 
 # Application definition
@@ -65,7 +65,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ORIGIN_WHITELIST = (
-    'localhost:4200',
+    '52.14.232.117',
 )
 
 ROOT_URLCONF = 'server.urls'
@@ -97,9 +97,9 @@ AUTH_USER_MODEL = 'user_auth.User'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'typos',
-        'USER' : 'typos',
-        'PASSWORD' : 'typos',
+        'NAME': 'typos_server',
+        'USER' : 'typos_server',
+        'PASSWORD' : 'typos_server',
         'HOST' : 'localhost',
         'PORT' : '',
     }
