@@ -1,6 +1,6 @@
 # Email settings
 
-DEFAULT_EMAIL_FROM = 'something.odd111@gmail.com'
+DEFAULT_EMAIL_FROM = '99typos@banzai.com'
 DEFAULT_EMAIL_BCC = 'chimezie.daluchi@banzai.io'
 
 EMAIL_HOST = 'smtp.gmail.com'
