@@ -5,7 +5,9 @@ from libs import *
 from celery.decorators import task
 from urllib.parse import urlparse
 
-from websites.models import Site, Page, Content, PageLink, ImageLink, Replacement, TyposGrammar
+from django.db import IntegrityError
+
+from websites.models import *
 
 from scrapyd_api import ScrapydAPI
 
@@ -55,36 +57,41 @@ def get_typos_task(**kwargs):
 def insert_links_task(**kwargs):
     links = kwargs.get('links', None)
     page = Page.objects.get(id=kwargs.get('page_id', None))
+    site = page.site
     for link in links:
-        link_obj = PageLink(url=link, page=page)
-        link_obj.save()
+        try:
+            link_obj = PageLink.objects.create(url=link, site=site)
+            PageLinkAssociation.objects.create(page=page, link=link_obj)
+        except IntegrityError:
+            link_obj = PageLink.objects.get(url=link, site=site)
+            PageLinkAssociation.objects.create(page=page, link=link_obj)
+        
 
 
 @task(name='insert_images')
 def insert_images_task(**kwargs):
     imgs = kwargs.get('imgs', None)
     page = Page.objects.get(id=kwargs.get('page_id', None))
+    site = page.site
     for img in imgs:
-        img_obj = ImageLink(url=img, page=page)
-        img_obj.save()
+        try:
+            img_obj = ImageLink.objects.create(url=img, site=site)
+            ImageLinkAssociation.objects.create(page=page, img=img_obj)
+        except IntegrityError:
+            img_obj = ImageLink.objects.get(url=img, site=site)
+            ImageLinkAssociation.objects.create(page=page, img=img_obj)
 
 
 @task(name="get_link_validation")
 def get_link_validation_task(**kwargs):
     id = kwargs.get('id', None)
     obj = PageLink.objects.get(id=id)
-    links = obj.page.site.all_pg_links
-
-    if obj.url in links:
-        pre_obj = PageLink.objects.filter(url=obj.url).first()
-        obj.status = pre_obj.status
-    else:
-        try:
-            status = requests.get(obj.url).status_code
-            if status != 200:
-                obj.status = False
-        except Exception as e:
+    try:
+        status = requests.get(obj.url).status_code
+        if status != 200:
             obj.status = False
+    except Exception as e:
+        obj.status = False
     obj.save()
 
 
@@ -92,18 +99,12 @@ def get_link_validation_task(**kwargs):
 def get_img_validation_task(**kwargs):
     id = kwargs.get('id', None)
     obj = ImageLink.objects.get(id=id)
-    imgs = obj.page.site.all_img_links
-
-    if obj.url in imgs:
-        pre_obj = ImageLink.objects.filter(url=obj.url).first()
-        obj.status = pre_obj.status
-    else:
-        try:
-            status = requests.get(obj.url).status_code
-            if status != 200:
-                obj.status = False
-        except Exception as e:
+    try:
+        status = requests.get(obj.url).status_code
+        if status != 200:
             obj.status = False
+    except Exception as e:
+        obj.status = False
     obj.save()
 
 

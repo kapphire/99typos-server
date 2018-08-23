@@ -49,7 +49,6 @@ class IcrawlerSpider(CrawlSpider):
                 i['links'].append(link.url)
         for image in response.xpath('//img/@src').extract():
             i['imgs'].append(response.urljoin(image))
-
         i['url'] = response.url
         i['body'] = response.body
         i['status'] = response.status

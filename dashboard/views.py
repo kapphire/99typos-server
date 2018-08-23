@@ -1,5 +1,7 @@
 from celery.result import AsyncResult
 
+from django.contrib.auth import get_user_model
+
 # Rest Framework
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -8,33 +10,41 @@ from rest_framework.views import APIView
 
 from websites.models import Site
 
+User = get_user_model()
+
 # Create your views here.
 class CeleryTaskChecker(APIView):
     def post(self, request, format=None):
-        id = request.data.get('uniqueId')
-        try:
-            site = Site.objects.get(id=id)
-        except Exception as e:
-            return Response({'status': 'error'})
-        pages = site.pages.all()
-        links = site.all_pg_links
-        imgs = site.all_img_links
-        success_count = 0
-        progress_count = 0
+        # id = request.data.get('uniqueId')
+        token = request.data.get('userToken')
+        user = Token.objects.get(key=token).user
+        sites = user.sites.filter(fill_status=False)
+        response = {'status': 'finished', 'data': list()}
+        for site in sites:
+            # try:
+            #     site = Site.objects.get(id=id)
+            # except Exception as e:
+            #     return Response({'status': 'error'})
+            pages = site.pages.all()
+            success_count = 0
+            progress_count = 0
 
-        for page in pages:
-            job_uid = page.job_uid
-            job_status = AsyncResult(job_uid).status
+            for page in pages:
+                job_uid = page.job_uid
+                job_status = AsyncResult(job_uid).status
 
-            if job_status != 'SUCCESS':
-                progress_count += 1
+                if job_status != 'SUCCESS':
+                    progress_count += 1
+                else:
+                    success_count += 1
+            if success_count == len(pages):
+                site.fill_status = True
+                site.save()
             else:
-                success_count += 1
-        if success_count == len(pages):
-            return Response({'status': 'finished'})
-        else:
-            ratio = round(progress_count / len(pages), 2)
-            return Response({'status': 'checking', 'data': ratio})
+                ratio = round(progress_count / len(pages), 2)
+                response['status'] = 'checking'
+                response['data'].append({'ratio': ratio, 'name': site.name})
+        return Response(response)
 
 
 class CeleryTaskProgressChecker(APIView):
@@ -42,7 +52,8 @@ class CeleryTaskProgressChecker(APIView):
         token = request.data.get('userToken')
         progress = request.data.get('progress')
         user = Token.objects.get(key=token).user
-        sites = user.sites.filter(task_status=False)
+        # sites = user.sites.filter(task_status=False)
+        sites = user.sites.all()
         result = list()
 
         for site in sites:
@@ -53,28 +64,29 @@ class CeleryTaskProgressChecker(APIView):
 
             if not detail['link'] and not detail['img']:
                 continue
-            if detail in progress:
-                continue
 
             elem = list()
             if detail['link']:
                 elem_img = dict()
                 elem_img['name'] = site.name
                 elem_img.update(detail['link'])
-
                 if elem_img:
                     elem.append(elem_img)
+
             if detail['img']:
                 elem_link = dict()
                 elem_link['name'] = site.name
                 elem_link.update(detail['img'])
-
                 if elem_link:
                     elem.append(elem_link)
+
             if elem:
                 result.append(elem)
 
+        # if result == progress:
+        #     result = list()
+
         if not result:
-            sites.update(task_status=True)                
-            return Response({'status': 'finished'})
+            sites.update(task_status=True)
+            return Response({'status': 'finished', 'data': result})
         return Response({'status': 'in progress', 'data': result})

@@ -25,22 +25,19 @@ class CrawlerPipeline(object):
     def process_item(self, item, spider):
         site = Site.objects.get(id=self.unique_id)
         if item['status'] == 200:
-            page = Page(url=item['url'], site=site)
-            page.save()
+            page = Page.objects.create(url=item['url'], site=site)
 
             hashed = get_hashed(item['body'])
-            content = Content(hashed=hashed, page=page)
-            content.save()
+            content = Content.objects.create(hashed=hashed, page=page)
 
             job_uid = get_typos_task.delay(html=item['body'].decode('utf-8'), content_id=content.id).id
             page.job_uid = job_uid
             page.save()
 
-            insert_links_task.delay(links=item['links'], page_id=page.id)
-            insert_images_task.delay(imgs=item['imgs'], page_id=page.id)
+            insert_links_task.delay(links=list(set(item['links'])), page_id=page.id)
+            insert_images_task.delay(imgs=list(set(item['imgs'])), page_id=page.id)
         else:
-            page = Page(url=item['url'], site=site, status=False)
-            page.save()
+            page = Page.objects.create(url=item['url'], site=site, status=False)
         return item
 
 

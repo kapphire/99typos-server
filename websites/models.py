@@ -16,6 +16,7 @@ class Site(models.Model):
     name = models.CharField(max_length=100)
     sitemap = models.BooleanField(default=False)
     robots = models.BooleanField(default=False)
+    fill_status = models.BooleanField(default=False)
     task_status = models.BooleanField(default=False)
     periodic_status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -23,50 +24,36 @@ class Site(models.Model):
     user = models.ForeignKey(User, related_name='sites', on_delete=models.CASCADE)
 
     @property
-    def all_img_links(self):
-        data = list()
-        pages = self.pages.all()
-        for page in pages:
-            [data.append(img.url) for img in page.imgs.all()]
-        data = list(set(data))
-        return data
-
-    @property
-    def all_pg_links(self):
-        data = list()
-        pages = self.pages.all()
-        for page in pages:
-            [data.append(link.url) for link in page.links.all()]
-        data = list(set(data))
-        return data
-
-    @property
     def get_link_task_status(self):
         success = 0
-        count = 0
-        pages = self.pages.all()
-        for page in pages:
-            page_status = page.get_link_task_status
-            success += page_status[0]
-            count += page_status[1]
-            count -= page_status[2]
-        if success == count and success != 0:
+        fails = 0
+        links = self.links.all()
+        for link in links:
+            job_status = AsyncResult(link.job_uid).status
+            if job_status == 'SUCCESS':
+                success += 1
+            if link.job_uid == '':
+                fails += 1
+        count = len(links) - fails
+        if success == count - 1 and success != 0:
             return False
-        return {'success' : success, 'count' : count, 'label' : 'Link'}
+        return {'success' : success, 'count' : count, 'label' : 'Links'}
 
     @property
     def get_img_task_status(self):
         success = 0
-        count = 0
-        pages = self.pages.all()
-        for page in pages:
-            page_status = page.get_img_task_status
-            success += page_status[0]
-            count += page_status[1]
-            count -= page_status[2]
+        fails = 0
+        imgs = self.imgs.all()
+        for img in imgs:
+            job_status = AsyncResult(img.job_uid).status
+            if job_status == 'SUCCESS':
+                success += 1
+            if img.job_uid == '':
+                fails += 1
+        count = len(imgs) - fails
         if success == count and success != 0:
             return False
-        return {'success' : success, 'count' : count, 'label' : 'Image'}
+        return {'success' : success, 'count' : count, 'label' : 'Images'}
 
     def __str__(self):
         return self.url
@@ -98,32 +85,6 @@ class Page(models.Model):
     def invalid_imgs(self):
         return self.imgs.filter(status=False)
 
-    @property
-    def get_link_task_status(self):
-        links = self.links.all()
-        count = 0
-        missed = 0
-        for link in links:
-            job_status = AsyncResult(link.job_uid).status
-            if job_status == 'SUCCESS':
-                count += 1
-            if link.job_uid == '':
-                missed += 1
-        return (count, len(links), missed)
-
-    @property
-    def get_img_task_status(self):
-        imgs = self.imgs.all()
-        count = 0
-        missed = 0
-        for img in imgs:
-            job_status = AsyncResult(img.job_uid).status
-            if job_status == 'SUCCESS':
-                count += 1
-            if img.job_uid == '':
-                missed += 1
-        return (count, len(imgs), missed)
-
     def __str__(self):
         return self.url
 
@@ -151,22 +112,34 @@ class Content(models.Model):
 
 class PageLink(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    url = models.CharField('Page Link', max_length=600, null=False, blank=False)
+    url = models.CharField('Page Link', max_length=600, null=False, blank=False, unique=True)
     job_uid = models.CharField(max_length=100)
     status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    page = models.ForeignKey(Page, related_name='links', on_delete=models.CASCADE)
+    pages = models.ManyToManyField(Page, related_name='links', through='PageLinkAssociation')
+    site = models.ForeignKey(Site, related_name='links', on_delete=models.CASCADE)
+
+
+class PageLinkAssociation(models.Model):
+    page = models.ForeignKey(Page, on_delete=models.CASCADE)
+    link = models.ForeignKey(PageLink, on_delete=models.CASCADE)
 
 
 class ImageLink(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    url = models.CharField('Image Link', max_length=600, null=False, blank=False)
+    url = models.CharField('Image Link', max_length=600, null=False, blank=False, unique=True)
     job_uid = models.CharField(max_length=100)
     status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    page = models.ForeignKey(Page, related_name='imgs', on_delete=models.CASCADE)
+    pages = models.ManyToManyField(Page, related_name='imgs', through='ImageLinkAssociation')
+    site = models.ForeignKey(Site, related_name='imgs', on_delete=models.CASCADE)
+
+
+class ImageLinkAssociation(models.Model):
+    page = models.ForeignKey(Page, on_delete=models.CASCADE)
+    img = models.ForeignKey(ImageLink, on_delete=models.CASCADE)
 
 
 class TyposGrammar(models.Model):

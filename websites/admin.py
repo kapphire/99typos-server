@@ -15,11 +15,19 @@ class ContentAdmin(admin.ModelAdmin):
 
 
 class PageLinkAdmin(admin.ModelAdmin):
-    list_display = ('id', 'url', 'job_uid', 'status', 'page')
+    list_display = ('id', 'url', 'job_uid', 'status')
 
 
 class ImageLinkAdmin(admin.ModelAdmin):
-    list_display = ('id', 'url', 'job_uid', 'status', 'page')
+    list_display = ('id', 'url', 'job_uid', 'status')
+
+
+class PageLinkAssociationAdmin(admin.ModelAdmin):
+    list_display = ('page', 'link')
+
+
+class ImageLinkAssociationAdmin(admin.ModelAdmin):
+    list_display = ('page', 'img')
 
 
 class TyposGrammarAdmin(admin.ModelAdmin):
@@ -35,5 +43,7 @@ admin.site.register(Page, PageAdmin)
 admin.site.register(Content, ContentAdmin)
 admin.site.register(PageLink, PageLinkAdmin)
 admin.site.register(ImageLink, ImageLinkAdmin)
+admin.site.register(PageLinkAssociation, PageLinkAssociationAdmin)
+admin.site.register(ImageLinkAssociation, ImageLinkAssociationAdmin)
 admin.site.register(TyposGrammar, TyposGrammarAdmin)
 admin.site.register(Replacement, ReplacementAdmin)

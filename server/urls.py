@@ -24,5 +24,7 @@ urlpatterns = [
     path('api/v1/', include('users.urls')),
     path('api/v1/', include('dashboard.urls')),
     path('api/v1/', include('plan.urls')),
-    path('api/v1/', include('websites.urls'))
+    path('api/v1/', include('websites.urls')),
+    path('api/v1/invitations/', include('invitations.urls', namespace='invitations')),
+    path('api/v1/', include('inviter.urls')),
 ]
