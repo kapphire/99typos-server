@@ -25,7 +25,7 @@ SECRET_KEY = '*0$_a89b5g=$mb-b-w0yxd4jcr=q!6a26=b!+kv#-z(gg6n^5v'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['18.188.155.177']
+ALLOWED_HOSTS = ['18.222.196.17']
 
 
 # Application definition
@@ -45,11 +45,14 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django_celery_results',
     'user_auth',
+    'djstripe',
     'dashboard',
     'plan',
     'websites',
     'users',
-    'djstripe'
+    'allauth',
+    'invitations',
+    'inviter'
 ]
 
 MIDDLEWARE = [
