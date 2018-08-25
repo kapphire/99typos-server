@@ -58,7 +58,6 @@ def insert_links_task(**kwargs):
     links = kwargs.get('links', None)
     page = Page.objects.get(id=kwargs.get('page_id', None))
     site = page.site
-    print('==================')
     for link in links:
         try:
             link_obj = PageLink.objects.create(url=link, site=site)
@@ -74,7 +73,6 @@ def insert_images_task(**kwargs):
     imgs = kwargs.get('imgs', None)
     page = Page.objects.get(id=kwargs.get('page_id', None))
     site = page.site
-    print('~~~~~~~~~~~~~~~~~~~~')
     for img in imgs:
         try:
             img_obj = ImageLink.objects.create(url=img, site=site)
@@ -90,10 +88,12 @@ def get_link_validation_task(**kwargs):
     obj = PageLink.objects.get(id=id)
     try:
         headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
-        status = requests.get(obj.url, headers=headers).status_code
+        status = requests.get(obj.url, headers=headers, timeout=10).status_code
         if status != 200:
             obj.status = False
-    except Exception as e:
+    except requests.exceptions.Timeout:
+        obj.status = False
+    except requests.exceptions.RequestException as e:
         obj.status = False
     obj.save()
 
@@ -104,10 +104,12 @@ def get_img_validation_task(**kwargs):
     obj = ImageLink.objects.get(id=id)
     try:
         headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
-        status = requests.get(obj.url, headers=headers).status_code
+        status = requests.get(obj.url, headers=headers, timeout=10).status_code
         if status != 200:
             obj.status = False
-    except Exception as e:
+    except requests.exceptions.Timeout:
+        obj.status = False
+    except requests.exceptions.RequestException as e:
         obj.status = False
     obj.save()
 

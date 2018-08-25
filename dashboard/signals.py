@@ -19,11 +19,7 @@ def create_pg_link(sender, created=False, **kwargs):
         obj = kwargs.get('instance')
         task = get_link_validation_task.delay(id=obj.id)
         job_uid = task.id
-        try:
-            task.get(timeout=20)
-            obj.job_uid = job_uid
-        except TimeoutError as err:
-            obj.status = False
+        obj.job_uid = job_uid        
         obj.save()
 
 
@@ -33,9 +29,5 @@ def create_img_link(sender, created=False, **kwargs):
         obj = kwargs.get('instance')
         task = get_img_validation_task.delay(id=obj.id)
         job_uid = task.id
-        try:
-            task.get(timeout=20)
-            obj.job_uid = job_uid
-        except TimeoutError as err:
-            obj.status = False
+        obj.job_uid = job_uid
         obj.save()
