@@ -3,7 +3,7 @@ from .models import *
 
 # Register your models here.
 class SiteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'name', 'url', 'sitemap', 'robots', 'created_at', 'modified_at')
+    list_display = ('id', 'name', 'url', 'sitemap', 'robots', 'created_at', 'modified_at')
 
 
 class PageAdmin(admin.ModelAdmin):

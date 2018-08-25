@@ -1,4 +1,5 @@
 import os
+from celery.exceptions import TimeoutError
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 
@@ -16,8 +17,13 @@ from dashboard.tasks import get_link_validation_task, get_img_validation_task
 def create_pg_link(sender, created=False, **kwargs):
     if created:
         obj = kwargs.get('instance')
-        job_uid = get_link_validation_task.delay(id=obj.id).id
-        obj.job_uid = job_uid
+        task = get_link_validation_task.delay(id=obj.id)
+        job_uid = task.id
+        try:
+            task.get(timeout=20)
+            obj.job_uid = job_uid
+        except TimeoutError as err:
+            obj.status = False
         obj.save()
 
 
@@ -25,6 +31,11 @@ def create_pg_link(sender, created=False, **kwargs):
 def create_img_link(sender, created=False, **kwargs):
     if created:
         obj = kwargs.get('instance')
-        job_uid = get_img_validation_task.delay(id=obj.id).id
-        obj.job_uid = job_uid
+        task = get_img_validation_task.delay(id=obj.id)
+        job_uid = task.id
+        try:
+            task.get(timeout=20)
+            obj.job_uid = job_uid
+        except TimeoutError as err:
+            obj.status = False
         obj.save()

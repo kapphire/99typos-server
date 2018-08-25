@@ -87,7 +87,8 @@ def get_link_validation_task(**kwargs):
     id = kwargs.get('id', None)
     obj = PageLink.objects.get(id=id)
     try:
-        status = requests.get(obj.url).status_code
+        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+        status = requests.get(obj.url, headers=headers).status_code
         if status != 200:
             obj.status = False
     except Exception as e:
@@ -100,7 +101,8 @@ def get_img_validation_task(**kwargs):
     id = kwargs.get('id', None)
     obj = ImageLink.objects.get(id=id)
     try:
-        status = requests.get(obj.url).status_code
+        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+        status = requests.get(obj.url, headers=headers).status_code
         if status != 200:
             obj.status = False
     except Exception as e:

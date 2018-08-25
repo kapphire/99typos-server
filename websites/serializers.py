@@ -91,18 +91,16 @@ class SiteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Site
-        fields = ('id', 'url', 'name', 'created_at', 'modified_at', 'user')
+        fields = ('id', 'url', 'name', 'created_at', 'modified_at')
 
     def create(self, data):
         validated_data = {
             'url': data['url'],
-            'name': data['name'],
-            'user': User.objects.get(id=data['user']),
+            'name': data['name'],            
             'sitemap': data['sitemap'],
             'robots': data['robots']
         }
-        site = Site(**validated_data)
-        site.save()
+        site = Site.objects.create(**validated_data)
         return site
 
 
@@ -114,7 +112,7 @@ class SiteListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Site
-        fields = ('id', 'url', 'name', 'user', 'spelling', 'grammar', 'image', 'link')
+        fields = ('id', 'url', 'name', 'spelling', 'grammar', 'image', 'link')
 
     def get_spelling(self, obj):
         count = 0
@@ -150,3 +148,41 @@ class SiteListSerializer(serializers.ModelSerializer):
             imgs = page.imgs.filter(status=False)
             count += len(imgs)
         return count
+
+
+class SiteLinkListSerializer(serializers.ModelSerializer):
+    links = PageLinkListSerializer(many=True, read_only=True, source='invalid_links')
+
+    class Meta:
+        model = Site
+        fields = ('id', 'name', 'url', 'links')
+
+
+class SiteImageListSerializer(serializers.ModelSerializer):
+    imgs = ImageLinkListSerializer(many=True, read_only=True, source='invalid_imgs')
+
+    class Meta:
+        model = Site
+        fields = ('id', 'name', 'url', 'imgs')
+
+
+class SiteDetailSerializer(serializers.ModelSerializer):
+    pages = PageDetailSerializer(many=True)
+
+    class Meta:
+        model = Site
+        fields = ('id', 'name', 'url', 'pages')
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('id', 'email')
+
+class SiteUserSerializer(serializers.ModelSerializer):
+    users = UserSerializer(many=True)
+
+    class Meta:
+        model = Site
+        fields = ('id', 'name', 'url', 'users')

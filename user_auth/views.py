@@ -62,7 +62,9 @@ class SignupVerify(APIView):
             except SignupCode.DoesNotExist:
                 pass
             content = {'success': _('User verified.')}
-            return Response(content, status=status.HTTP_200_OK)
+            # return Response(content, status=status.HTTP_200_OK)
+            # return redirect(("http://localhost:4200/login").format(code, status))
+            return redirect(("http://52.14.232.117/login").format(code, status))
         else:
             content = {'detail': _('Unable to verify user.')}
             return Response(content, status=status.HTTP_400_BAD_REQUEST)

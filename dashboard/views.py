@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from websites.models import Site
+from websites.serializers import SiteListSerializer
 
 User = get_user_model()
 
@@ -44,6 +45,9 @@ class CeleryTaskChecker(APIView):
                 ratio = round(progress_count / len(pages), 2)
                 response['status'] = 'checking'
                 response['data'].append({'ratio': ratio, 'name': site.name})
+        sites = user.sites
+        serializer = SiteListSerializer(sites, many=True)
+        response['sites'] = serializer.data
         return Response(response)
 
 
@@ -82,11 +86,9 @@ class CeleryTaskProgressChecker(APIView):
 
             if elem:
                 result.append(elem)
-
-        # if result == progress:
-        #     result = list()
-
+        sites = user.sites
+        serializer = SiteListSerializer(sites, many=True)
         if not result:
             sites.update(task_status=True)
-            return Response({'status': 'finished', 'data': result})
-        return Response({'status': 'in progress', 'data': result})
+            return Response({'status': 'finished', 'data': result, 'sites': serializer.data})
+        return Response({'status': 'in progress', 'data': result, 'sites': serializer.data})

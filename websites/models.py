@@ -21,21 +21,23 @@ class Site(models.Model):
     periodic_status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    user = models.ForeignKey(User, related_name='sites', on_delete=models.CASCADE)
+    users = models.ManyToManyField(User, related_name='sites')
 
     @property
     def get_link_task_status(self):
         success = 0
         fails = 0
-        links = self.links.all()
+        links = self.links.filter(status=True)
         for link in links:
             job_status = AsyncResult(link.job_uid).status
             if job_status == 'SUCCESS':
                 success += 1
+            if job_status == 'FAILURE':
+                fails += 1
             if link.job_uid == '':
                 fails += 1
         count = len(links) - fails
-        if success == count - 1 and success != 0:
+        if success == count and success != 0:
             return False
         return {'success' : success, 'count' : count, 'label' : 'Links'}
 
@@ -43,17 +45,25 @@ class Site(models.Model):
     def get_img_task_status(self):
         success = 0
         fails = 0
-        imgs = self.imgs.all()
+        imgs = self.imgs.filter(status=True)
         for img in imgs:
             job_status = AsyncResult(img.job_uid).status
             if job_status == 'SUCCESS':
                 success += 1
+            if job_status == 'FAILURE':
+                fails += 1
             if img.job_uid == '':
                 fails += 1
         count = len(imgs) - fails
         if success == count and success != 0:
             return False
         return {'success' : success, 'count' : count, 'label' : 'Images'}
+
+    def invalid_links(self):
+        return self.links.filter(status=False)
+
+    def invalid_imgs(self):
+        return self.imgs.filter(status=False)
 
     def __str__(self):
         return self.url

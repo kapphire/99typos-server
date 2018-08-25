@@ -25,8 +25,13 @@ from .serializers import (
     SiteSerializer,
     PageDetailSerializer,
     PageListSerializer,
-    SiteListSerializer
+    SiteListSerializer,
+    SiteLinkListSerializer,
+    SiteImageListSerializer,
+    SiteDetailSerializer,
+    SiteUserSerializer
 )
+from users.serializers import UserSerializer
 
 # Scrapy
 from scrapyd_api import ScrapydAPI
@@ -72,7 +77,6 @@ class SiteRegister(APIView):
             data = {
                 'url': url,
                 'name': name,
-                'user': user.id,
                 'sitemap': sitemap,
                 'robots': robots
             }
@@ -80,6 +84,7 @@ class SiteRegister(APIView):
 
         if serializer.is_valid():
             site = serializer.create(data)
+            site.users.add(user)
             domain = urlparse(site.url).netloc
             settings = {
                 'unique_id': site.id,
@@ -108,7 +113,7 @@ class SiteList(APIView):
     def post(self, request, format=None):
         token = request.data.get('userToken')
         user = Token.objects.get(key=token).user
-        sites = user.sites.all()
+        sites = user.sites
         serializer = self.serializer_class(sites, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -186,16 +191,115 @@ class ChangeSite(APIView):
         site = self.get_object(id)
         site.name = request.data.get('name')
         site.url = request.data.get('url')
+        token = request.data.get('userToken')
         site.save()
-        user = site.user
+        user = Token.objects.get(key=token).user
         sites = user.sites.all()
         serializer = self.serializer_class(sites, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def delete(self, request, id, format=None):
+    def post(self, request, id, format=None):
         site = self.get_object(id)
-        user = site.user
+        token = request.data.get('userToken')
+        user = Token.objects.get(key=token).user
         site.delete()
         sites = user.sites.all()
         serializer = self.serializer_class(sites, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class IssueGrammarList(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = SiteDetailSerializer
+
+    def post(self, request, format=None):
+        token = request.data.get('userToken')
+        user = Token.objects.get(key=token).user
+        sites = user.sites.all()
+        serializer = self.serializer_class(sites, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class IssueSpellingList(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = SiteDetailSerializer
+
+    def post(self, request, format=None):
+        token = request.data.get('userToken')
+        user = Token.objects.get(key=token).user
+        sites = user.sites.all()
+        serializer = self.serializer_class(sites, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class IssueLinkList(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = SiteLinkListSerializer
+
+    def post(self, request, format=None):
+        token = request.data.get('userToken')
+        user = Token.objects.get(key=token).user
+        sites = user.sites.all()
+        serializer = self.serializer_class(sites, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class IssueImageList(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = SiteImageListSerializer
+
+    def post(self, request, format=None):
+        token = request.data.get('userToken')
+        user = Token.objects.get(key=token).user
+        sites = user.sites.all()
+        serializer = self.serializer_class(sites, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PermissionUserList(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, format=None):
+        token = request.data.get('userToken')
+        users = User.objects.all()
+        user_serializer = UserSerializer(users, many=True)
+        user = Token.objects.get(key=token).user
+        sites = user.sites.all()
+        site_serializer = SiteUserSerializer(sites, many=True)
+        return Response({'users': user_serializer.data, 'sites': site_serializer.data})
+
+
+class PermissionUserAdd(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, format=None):
+        token = request.data.get('userToken')
+        site_id = request.data.get('siteId')
+        user_id = request.data.get('userId')
+        site = Site.objects.get(id=site_id)
+        user = User.objects.get(id=user_id)
+        site.users.add(user)
+        users = User.objects.all()
+        user_serializer = UserSerializer(users, many=True)
+        user = Token.objects.get(key=token).user
+        sites = user.sites.all()
+        site_serializer = SiteUserSerializer(sites, many=True)
+        return Response({'users': user_serializer.data, 'sites': site_serializer.data})
+
+
+class PermissionUserDelete(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, format=None):
+        token = request.data.get('userToken')
+        site_id = request.data.get('siteId')
+        user_id = request.data.get('userId')
+        site = Site.objects.get(id=site_id)
+        user = User.objects.get(id=user_id)
+        site.users.remove(user)
+        users = User.objects.all()
+        user_serializer = UserSerializer(users, many=True)
+        user = Token.objects.get(key=token).user
+        sites = user.sites.all()
+        site_serializer = SiteUserSerializer(sites, many=True)
+        return Response({'users': user_serializer.data, 'sites': site_serializer.data})
