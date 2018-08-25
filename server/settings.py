@@ -190,3 +190,6 @@ CELERY_TIMEZONE = TIME_ZONE
 HTML_CONTENT_EXTENSION = '.dat'
 
 S3_BUCKET_NAME = 'banzai-99typos'
+
+ACCOUNT_ADAPTER = 'invitations.models.InvitationsAdapter'
+INVITATIONS_SIGNUP_REDIRECT = "http://52.14.232.117/signup/"
