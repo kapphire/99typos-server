@@ -58,6 +58,7 @@ def insert_links_task(**kwargs):
     links = kwargs.get('links', None)
     page = Page.objects.get(id=kwargs.get('page_id', None))
     site = page.site
+    print('==================')
     for link in links:
         try:
             link_obj = PageLink.objects.create(url=link, site=site)
@@ -73,6 +74,7 @@ def insert_images_task(**kwargs):
     imgs = kwargs.get('imgs', None)
     page = Page.objects.get(id=kwargs.get('page_id', None))
     site = page.site
+    print('~~~~~~~~~~~~~~~~~~~~')
     for img in imgs:
         try:
             img_obj = ImageLink.objects.create(url=img, site=site)
